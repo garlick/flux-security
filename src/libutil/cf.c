@@ -317,6 +317,76 @@ int cf_update_glob (cf_t *cf, const char *pattern, struct cf_error *error)
     return (count);
 }
 
+int cf_update_int64 (cf_t *cf, const char *key, int64_t val)
+{
+    json_t *o;
+    if (!cf || !key || !(o = json_object_get (cf, key))
+                    || json_integer_set (o, val) < 0) {
+        errno = EINVAL;
+        return -1;
+    }
+    return 0;
+}
+
+int cf_update_double (cf_t *cf, const char *key, double val)
+{
+    json_t *o;
+    if (!cf || !key || !(o = json_object_get (cf, key))
+                    || json_real_set (o, val) < 0) {
+        errno = EINVAL;
+        return -1;
+    }
+    return 0;
+}
+
+int cf_update_string (cf_t *cf, const char *key, const char *val)
+{
+    json_t *o;
+    if (!cf || !key || !(o = json_object_get (cf, key))
+                    || json_string_set (o, val) < 0) {
+        errno = EINVAL;
+        return -1;
+    }
+    return 0;
+}
+
+int cf_update_bool (cf_t *cf, const char *key, bool val)
+{
+    json_t *o;
+    if (!cf || !key || !(o = json_object_get (cf, key))
+                    || cf_typeof (o) != CF_BOOL) {
+        errno = EINVAL;
+        return -1;
+    }
+    /* json_true() and json_false() return static object pointers.
+     */
+    if (json_object_set (cf, key, val ? json_true () : json_false ()) < 0) {
+        errno = ENOMEM;
+        return -1;
+    }
+    return 0;
+}
+
+int cf_update_timestamp (cf_t *cf, const char *key, time_t val)
+{
+    json_t *o;
+    json_t *new;
+
+    if (!cf || !key || !(o = json_object_get (cf, key))
+                    || cf_typeof (o) != CF_TIMESTAMP) {
+        errno = EINVAL;
+        return -1;
+    }
+    if (!(new = tomltk_epoch_to_json (val)))
+        return -1;
+    if (json_object_set_new (cf, key, new) < 0) {
+        json_decref (new);
+        errno = ENOMEM;
+        return -1;
+    }
+    return 0;
+}
+
 static bool is_end_marker (struct cf_option opt)
 {
     const struct cf_option end = CF_OPTIONS_TABLE_END;
