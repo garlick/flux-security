@@ -12,6 +12,7 @@
 
 #include "src/libtap/tap.h"
 #include "cf.h"
+#include "timestamp.h"
 
 const char *t1 = \
 "i = 1\n" \
@@ -559,6 +560,90 @@ void test_check (void)
     cf_destroy (cf);
 }
 
+void test_update_value (void)
+{
+    cf_t *cf;
+
+    if (!(cf = cf_create ()))
+        BAIL_OUT ("cf_create");
+    if (cf_update (cf, t1, strlen (t1), NULL) < 0)
+        BAIL_OUT ("cf_update");
+
+    /* Update an integer value.
+     */
+    ok (cf_update_value (cf, "i", "42") == 0,
+        "cf_update_value int64 works");
+    ok (cf_int64 (cf_get_in (cf, "i")) == 42,
+        "correct value was set");
+    errno = 0;
+    ok (cf_update_value (cf, "i", "42.2") < 0 && errno == EINVAL,
+        "cf_update_value int64 fails with EINVAL on double");
+    errno = 0;
+    ok (cf_update_value (cf, "i", "true") < 0 && errno == EINVAL,
+        "cf_update_value int64 fails with EINVAL on bool");
+    errno = 0;
+    ok (cf_update_value (cf, "i", "hello") < 0 && errno == EINVAL,
+        "cf_update_value int64 fails with EINVAL on string");
+    errno = 0;
+    ok (cf_update_value (cf, "i", "1979-05-27T07:32:00Z") < 0
+        && errno == EINVAL,
+        "cf_update_value int64 fails with EINVAL on timestamp");
+
+    /* Update a double value
+     */
+    ok (cf_update_value (cf, "d", "42.2") == 0,
+        "cf_update_value double works");
+    ok (cf_double (cf_get_in (cf, "d")) == 42.2,
+        "correct value was set");
+    ok (cf_update_value (cf, "d", "42") == 0,
+        "cf_update_value double converts int64");
+    errno = 0;
+    ok (cf_update_value (cf, "d", "true") < 0 && errno == EINVAL,
+        "cf_update_value double fails with EINVAL on bool");
+    errno = 0;
+    ok (cf_update_value (cf, "d", "hello") < 0 && errno == EINVAL,
+        "cf_update_value double fails with EINVAL on string");
+    errno = 0;
+    ok (cf_update_value (cf, "d", "1979-05-27T07:32:00Z") < 0
+        && errno == EINVAL,
+        "cf_update_value double fails with EINVAL on timestamp");
+
+    /* Update a string value
+     */
+    ok (cf_update_value (cf, "s", "goodbye") == 0,
+        "cf_update_value string works");
+    ok (!strcmp (cf_string (cf_get_in (cf, "s")), "goodbye"),
+        "correct value was set");
+
+    /* Update a bool value
+     */
+    ok (cf_update_value (cf, "b", "false") == 0,
+        "cf_update_value bool works");
+    ok (cf_bool (cf_get_in (cf, "b")) == false,
+        "correct value was set");
+    errno = 0;
+    ok (cf_update_value (cf, "b", "42") < 0 && errno == EINVAL,
+        "cf_update_value bool fails with EINVAL on int64");
+
+    /* Update a timestamp value
+     */
+    time_t t;
+    char tbuf[128];
+    if (time (&t) < 0)
+        BAIL_OUT ("time failed");
+    if (timestamp_tostr (t, tbuf, sizeof (tbuf)) < 0)
+        BAIL_OUT ("timestamp_tostr failed");
+    ok (cf_update_value (cf, "ts", tbuf) == 0,
+        "cf_update_value timestamp works");
+    ok (cf_timestamp (cf_get_in (cf, "ts")) == t,
+        "correct value was set");
+    errno = 0;
+    ok (cf_update_value (cf, "ts", "invalid") < 0 && errno == EINVAL,
+        "cf_update_value timestamp fails with EINVAL on invalid");
+
+    cf_destroy (cf);
+}
+
 int main (int argc, char *argv[])
 {
     plan (NO_PLAN);
@@ -569,6 +654,7 @@ int main (int argc, char *argv[])
     test_update_file ();
     test_update_glob ();
     test_check ();
+    test_update_value ();
 
     done_testing ();
 }
