@@ -103,15 +103,11 @@ int cf_update_file (cf_t *cf, const char *filename, struct cf_error *error);
 int cf_update_glob (cf_t *cf, const char *pattern, struct cf_error *error);
 
 /* Update individual value in table 'cf', by 'key'.
- * The value must already be set, and the type of the new value must agree
- * with the old one.
- * Returns 0 on success, -1 on error with errno set.
+ * The value must already be set, and 'val' (a string) is converted
+ * to the type of the existing value.
+ * Returns 0 on success, -1 on failure with errno set.
  */
-int cf_update_int64 (cf_t *cf, const char *key, int64_t val);
-int cf_update_double (cf_t *cf, const char *key, double val);
-int cf_update_string (cf_t *cf, const char *key, const char *val);
-int cf_update_bool (cf_t *cf, const char *key, bool val);
-int cf_update_timestamp (cf_t *cf, const char *key, time_t val);
+int cf_update_value (cf_t *cf, const char *key, const char *val);
 
 /* Apply 'opts' to table 'cf' according to flags.
  * On success return 0.  On failure, return -1 with errno set.

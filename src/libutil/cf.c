@@ -318,76 +318,6 @@ int cf_update_glob (cf_t *cf, const char *pattern, struct cf_error *error)
     return (count);
 }
 
-int cf_update_int64 (cf_t *cf, const char *key, int64_t val)
-{
-    json_t *o;
-    if (!cf || !key || !(o = json_object_get (cf, key))
-                    || json_integer_set (o, val) < 0) {
-        errno = EINVAL;
-        return -1;
-    }
-    return 0;
-}
-
-int cf_update_double (cf_t *cf, const char *key, double val)
-{
-    json_t *o;
-    if (!cf || !key || !(o = json_object_get (cf, key))
-                    || json_real_set (o, val) < 0) {
-        errno = EINVAL;
-        return -1;
-    }
-    return 0;
-}
-
-int cf_update_string (cf_t *cf, const char *key, const char *val)
-{
-    json_t *o;
-    if (!cf || !key || !(o = json_object_get (cf, key))
-                    || json_string_set (o, val) < 0) {
-        errno = EINVAL;
-        return -1;
-    }
-    return 0;
-}
-
-int cf_update_bool (cf_t *cf, const char *key, bool val)
-{
-    json_t *o;
-    if (!cf || !key || !(o = json_object_get (cf, key))
-                    || cf_typeof (o) != CF_BOOL) {
-        errno = EINVAL;
-        return -1;
-    }
-    /* json_true() and json_false() return static object pointers.
-     */
-    if (json_object_set (cf, key, val ? json_true () : json_false ()) < 0) {
-        errno = ENOMEM;
-        return -1;
-    }
-    return 0;
-}
-
-int cf_update_timestamp (cf_t *cf, const char *key, time_t val)
-{
-    json_t *o;
-    json_t *new;
-
-    if (!cf || !key || !(o = json_object_get (cf, key))
-                    || cf_typeof (o) != CF_TIMESTAMP) {
-        errno = EINVAL;
-        return -1;
-    }
-    if (!(new = tomltk_epoch_to_json (val)))
-        return -1;
-    if (json_object_set_new (cf, key, new) < 0) {
-        json_decref (new);
-        errno = ENOMEM;
-        return -1;
-    }
-    return 0;
-}
-
 int cf_update_value (cf_t *cf, const char *key, const char *val)
 {
     json_t *o;
@@ -400,36 +330,47 @@ int cf_update_value (cf_t *cf, const char *key, const char *val)
         case CF_INT64: {
             char *endptr;
             int64_t i = strtoll (val, &endptr, 0);
-            if (*endptr != '\0')
+            if (*endptr != '\0' || json_integer_set (o, i) < 0)
                 goto inval;
-            return cf_update_int64 (cf, key, i);
+            break;
         }
         case CF_DOUBLE: {
             char *endptr;
             double d = strtod (val, &endptr);
-            if (*endptr != '\0')
+            if (*endptr != '\0' || json_real_set (o, d) < 0)
                 goto inval;
-            return cf_update_double (cf, key, d);
+            break;
         }
         case CF_STRING:
-            return cf_update_string (cf, key, val);
-        case CF_BOOL: {
-            bool b;
-            if (!strcmp (val, "1") || !strcasecmp (val, "true")
-                                   || !strcasecmp (val, "T"))
-                b = true;
-            else if (!strcmp (val, "0") || !strcasecmp (val, "false")
-                                        || !strcasecmp (val, "F"))
-                b = false;
-            else
+            if (json_string_set (o, val) < 0)
                 goto inval;
-            return cf_update_bool (cf, key, b);
+            break;
+        case CF_BOOL: {
+            json_t *b = NULL;
+            if (!strcmp (val, "true"))
+                b = json_true ();
+            else if (!strcmp (val, "false"))
+                b = json_false ();
+            if (!b)
+                goto inval;
+            if (json_object_set_new (cf, key, b) < 0) { // frees old val obj
+                json_decref (b);
+                goto inval;
+            }
+            break;
         }
         case CF_TIMESTAMP: {
+            json_t *ts;
             time_t t;
             if (timestamp_fromstr (val, &t) < 0)
                 goto inval;
-            return cf_update_timestamp (cf, key, t);
+            if (!(ts = tomltk_epoch_to_json (t)))
+                goto inval;
+            if (json_object_set_new (cf, key, ts) < 0) { // frees old val obj
+                json_decref (ts);
+                goto inval;
+            }
+            break;
         }
         default:
             goto inval;
