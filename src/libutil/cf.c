@@ -33,6 +33,7 @@
 #include "src/libtomlc99/toml.h"
 #include "tomltk.h"
 #include "cf.h"
+#include "timestamp.h"
 
 #define ERRBUFSZ 200
 
@@ -385,6 +386,58 @@ int cf_update_timestamp (cf_t *cf, const char *key, time_t val)
         return -1;
     }
     return 0;
+}
+
+int cf_update_value (cf_t *cf, const char *key, const char *val)
+{
+    json_t *o;
+
+    if (!cf || !key || !val || !(o = json_object_get (cf, key))) {
+        errno = EINVAL;
+        return -1;
+    }
+    switch (cf_typeof (o)) {
+        case CF_INT64: {
+            char *endptr;
+            int64_t i = strtoll (val, &endptr, 0);
+            if (*endptr != '\0')
+                goto inval;
+            return cf_update_int64 (cf, key, i);
+        }
+        case CF_DOUBLE: {
+            char *endptr;
+            double d = strtod (val, &endptr);
+            if (*endptr != '\0')
+                goto inval;
+            return cf_update_double (cf, key, d);
+        }
+        case CF_STRING:
+            return cf_update_string (cf, key, val);
+        case CF_BOOL: {
+            bool b;
+            if (!strcmp (val, "1") || !strcasecmp (val, "true")
+                                   || !strcasecmp (val, "T"))
+                b = true;
+            else if (!strcmp (val, "0") || !strcasecmp (val, "false")
+                                        || !strcasecmp (val, "F"))
+                b = false;
+            else
+                goto inval;
+            return cf_update_bool (cf, key, b);
+        }
+        case CF_TIMESTAMP: {
+            time_t t;
+            if (timestamp_fromstr (val, &t) < 0)
+                goto inval;
+            return cf_update_timestamp (cf, key, t);
+        }
+        default:
+            goto inval;
+    }
+    return 0;
+inval:
+    errno = EINVAL;
+    return -1;
 }
 
 static bool is_end_marker (struct cf_option opt)
