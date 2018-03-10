@@ -223,6 +223,7 @@ static int op_verify (flux_security_t *ctx, const char *input,
         security_error (ctx, "sign-munge-verify: max-ttl exceeded");
         goto error;
     }
+    free (indigest);
     return 0;
 error:
     saved_errno = errno;
