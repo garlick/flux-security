@@ -57,5 +57,6 @@ struct sign_mech {
 
 extern const struct sign_mech sign_mech_none;
 extern const struct sign_mech sign_mech_munge;
+extern const struct sign_mech sign_mech_fluxca;
 
 #endif /* !_FLUX_SECURITY_SIGN_MECH_H */

@@ -24,6 +24,7 @@ fluxsecurityinclude_HEADERS = \
 libflux_security_la_SOURCES =
 libflux_security_la_LIBADD = \
 	$(builddir)/libsecurity.la \
+	$(top_builddir)/src/libca/libca.la \
 	$(top_builddir)/src/libutil/libutil.la \
 	$(top_builddir)/src/libtomlc99/libtomlc99.la \
 	$(SODIUM_LIBS) $(JANSSON_LIBS) $(MUNGE_LIBS)
@@ -38,7 +39,8 @@ libsecurity_la_SOURCES = \
 	sign.c \
 	sign_mech.h \
 	sign_none.c \
-	sign_munge.c
+	sign_munge.c \
+	sign_fluxca.c
 
 TESTS = \
 	test_context.t \
@@ -57,6 +59,7 @@ test_cppflags = \
 test_ldadd = \
 	$(AM_LDFLAGS) \
 	$(builddir)/libsecurity.la \
+	$(top_builddir)/src/libca/libca.la \
 	$(top_builddir)/src/libutil/libutil.la \
 	$(top_builddir)/src/libtomlc99/libtomlc99.la \
 	$(top_builddir)/src/libtap/libtap.la \
