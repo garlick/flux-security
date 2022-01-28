@@ -4,7 +4,7 @@ UBSAN_OPTIONS ?= print_stacktrace=1
 export ASAN_OPTIONS
 export UBSAN_OPTIONS
 endif
-SUBDIRS =         src etc t
+SUBDIRS = src doc etc t
 ACLOCAL_AMFLAGS = -I config
 EXTRA_DIST = \
 	config/tap-driver.sh \
