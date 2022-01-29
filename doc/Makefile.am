@@ -1,3 +1,6 @@
+
+SUBDIRS = test
+
 MAN5_FILES = \
 	man5/flux-config-imp.5
 

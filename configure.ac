@@ -170,6 +170,7 @@ AC_CONFIG_FILES( \
   src/libca/Makefile \
   src/imp/Makefile \
   doc/Makefile \
+  doc/test/Makefile \
   etc/Makefile \
 )
 
