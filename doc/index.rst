@@ -15,3 +15,4 @@ flux-security Manual Pages
    :maxdepth: 2
 
    man5/index
+   man8/index

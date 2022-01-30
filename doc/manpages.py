@@ -18,4 +18,5 @@ author = 'This page is maintained by the Flux community.'
 # - Manual section
 man_pages = [
     ('man5/flux-config-imp', 'flux-config-imp', 'configure Flux IMP behavior', [author], 5),
+    ('man8/flux-imp', 'flux-imp', 'Flux Independent Minister of Privilege', [author], 8),
 ]
