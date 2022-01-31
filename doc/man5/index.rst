@@ -6,3 +6,4 @@ man5
   :maxdepth: 1
 
   flux-config-security-imp
+  flux-config-security
