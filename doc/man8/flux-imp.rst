@@ -34,7 +34,8 @@ COMMANDS
 **exec**
   The **flux-imp exec** command is invoked by a multi-user instance to
   execute a the job shell as the appropriate user. Description of the
-  **exec** command configuration can be found in :man5:`flux-config-imp`.
+  **exec** command configuration can be found in
+  :man5:`flux-config-security-imp`.
 
 **kill**
   The **flux-imp kill** command is invoked by a multi-user instance to
@@ -44,7 +45,7 @@ COMMANDS
   The **flux-imp run** command is used by a Flux instance to execute
   arbitrary commands with privilege, typically a job prolog or epilog.
   Description of **run** command configuration can be found in
-  :man5:`flux-config-imp`.
+  :man5:`flux-config-security-imp`.
 
 
 SECURITY NOTES
@@ -68,4 +69,4 @@ RFC 15: Independent Minister of Privilege for Flux: The Security IMP: https://fl
 SEE ALSO
 ========
 
-:man5:`flux-config-imp`
+:man5:`flux-config-security-imp`
