@@ -5,4 +5,4 @@ man5
   :caption: File formats and conventions
   :maxdepth: 1
 
-  flux-config-imp
+  flux-config-security-imp
